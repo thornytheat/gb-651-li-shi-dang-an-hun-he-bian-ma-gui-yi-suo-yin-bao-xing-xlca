@@ -9,6 +9,7 @@
         | 模块 | 使用者动作 | 入口 | 核心文件 | 测试 |
         |---|---|---|---|---|
         | M1 文件采信 | 运行样例并复核证据 | `/api/intake/run` / `/intake` | `app/modules/m1_intake/core.py` `app/modules/m1_intake/service.py` | `tests/test_m1_intake.py` |
+| M1 分段接收 | 断点续传与修订留档 | `/api/intake/sessions` `/api/intake/run` | `app/modules/m1_intake/service.py` `app/store.py` | `tests/test_m1_intake.py` |
 | M2 编码判定 | 运行样例并复核证据 | `/api/encoding/detect` / `/encoding` | `app/modules/m2_encoding/core.py` `app/modules/m2_encoding/service.py` | `tests/test_m2_encoding.py` |
 | M3 字段保形 | 运行样例并复核证据 | `/api/fields/normalize` / `/fields` | `app/modules/m3_fields/core.py` `app/modules/m3_fields/service.py` | `tests/test_m3_fields.py` |
 | M4 内容归一 | 运行样例并复核证据 | `/api/content/normalize` / `/content` | `app/modules/m4_content/core.py` `app/modules/m4_content/service.py` | `tests/test_m4_content.py` |
@@ -35,6 +36,13 @@
         - 输入记录数 = 有效记录数 + 隔离记录数 + 空记录数。
         - 核心数值或事件数在转换、判定和导出之间保持守恒。
         - 同一输入摘要重跑复用原运行编号，不增加结果行。
+
+        ## 分段接收规则
+
+        - 一个接收版本由「文件名 + 版本」唯一确定；同名新摘要自动接替为新版本，旧版本不改写。
+        - 只追加紧接 `confirmed_length` 的片段；同段重发幂等，异文片段落盘即拒收。
+        - 已确认字节、回执在数据库层禁止 UPDATE/DELETE；`COMPLETE` 版本不可再追加。
+        - 整份长度、摘要与完整解码全部通过后才解析并生成回执；缺段、错版、解码失败不产出档案。
 
         ## 已知不覆盖
 
